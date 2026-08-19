@@ -180,6 +180,7 @@ const maptyApp = new App()
 class Workout{
     date = new Date()
     id = (Date.now() + '').slice(-10)
+    clicks = 0;
     constructor(distance , duration , coords){
 
         this.distance = distance;  //in km
@@ -187,6 +188,10 @@ class Workout{
         this.coords = coords //arr = [latitude , longitude]
         
 
+    }
+
+    click(){
+        this.clicks++;
     }
 }
 
@@ -231,6 +236,7 @@ class Cycling extends Workout {
 class App{
 
     #map = L.map('map')
+    #mapZoomLevel = 13
 
     workouts = []
 
@@ -239,9 +245,18 @@ class App{
     constructor(){
         this._getPosition()
 
+
+
+        //getting local storage workouts
+        this._getLocalStorage()
+
+
         form.addEventListener('submit' , this._newWorkout.bind(this))
 
         inputType.addEventListener('change', this._toggleElevationField )
+
+        //Using Event Delegation
+        containerWorkouts.addEventListener('click' , this._moveToPopup.bind(this))
     }
     _getPosition(){
         navigator.geolocation.getCurrentPosition(this._loadMap.bind(this) , ()=> {console.log(`Cannot access location`)})
@@ -249,13 +264,18 @@ class App{
 
     _loadMap(position){
         const {latitude , longitude} = position.coords
-        this.#map.setView([latitude , longitude], 13)
+        this.#map.setView([latitude , longitude], this.#mapZoomLevel)
 
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(this.#map);
 
         this.#map.on('click' , this._showForm.bind(this))
+
+        this.workouts.forEach(workoutObj => {
+            this._renderWorkoutMarker.call(this , workoutObj)
+            
+        });
     }
 
     _showForm(mapEvent){
@@ -302,14 +322,22 @@ class App{
 
             }
 
+            workoutObj.latlng = this.#mapEvent.latlng
+            console.log(workoutObj)
+
             this.workouts.push(workoutObj)
             this._hideForm()
 
             this._renderWorkout( workoutObj )
 
             this._renderWorkoutMarker(workoutObj)
+
+            //calling function for setting up local storage
+            this._setLocalStorage()
             
         }
+        
+        
 
         
     }
@@ -317,12 +345,12 @@ class App{
     _renderWorkoutMarker(workoutObj){
         let  descripStr
         if(workoutObj.workoutType === 'running'){
-            descripStr = `🏃‍♂️ ${workoutObj.workoutType.toUpperCase()[0] + workoutObj.workoutType.slice(1)} on ${workoutObj.date.toLocaleString('default', { month: 'long' })}`
+            descripStr = `🏃‍♂️ ${workoutObj.workoutType.toUpperCase()[0] + workoutObj.workoutType.slice(1)} on ${workoutObj.date.toLocaleString('default', { month: 'long' })} ${workoutObj.date.getDate()}`
         }
         if(workoutObj.workoutType === 'cycling'){
-            descripStr = `🚴‍♀️ ${workoutObj.workoutType.toUpperCase()[0] + workoutObj.workoutType.slice(1)} on ${workoutObj.date.toLocaleString('default', { month: 'long' })}`
+            descripStr = `🚴‍♀️ ${workoutObj.workoutType.toUpperCase()[0] + workoutObj.workoutType.slice(1)} on ${workoutObj.date.toLocaleString('default', { month: 'long' }) } ${workoutObj.date.getDate()}`
         }
-        L.marker([this.#mapEvent.latlng.lat, this.#mapEvent.latlng.lng]).addTo(this.#map)
+        L.marker([workoutObj.latlng.lat, workoutObj.latlng.lng]).addTo(this.#map)
         .bindPopup(descripStr , {
             maxWidth : 250,
             minWidth : 100,
@@ -370,7 +398,82 @@ class App{
         </li>`
 
         form.insertAdjacentHTML("afterend" , htmlString)
-    }   
+
+        // const workoutDomElement = document.querySelector(`li[data-id = "${workoutObj.id}"]`)
+        // workoutDomElement.addEventListener('click' , this._moveToPopup.bind(this , workoutDomElement))
+    } 
+    
+    
+    _moveToPopup(  event /* workoutDomElement */){
+        
+        const workoutDomElement = event.target.closest('.workout')
+        
+        //guard clause
+        if(!workoutDomElement) return;
+        
+
+        const workoutId = workoutDomElement.dataset.id;
+        const workoutObj = this.workouts.find(workout => workout.id === workoutId);
+
+        this.#map.setView(workoutObj.coords , this.#mapZoomLevel , {
+            animate : true,
+            pan : {
+                duration : 1
+            }
+            
+        })
+
+        workoutObj.click() //using public interface on workouts.
+
+
+        // const workoutId = workoutDomElement.dataset.id
+        // const workoutObj = this.workouts.find(workout => workout.id === workoutId)
+
+        // this.#map.setView(workoutObj.coords , 13 , {
+        //     animate : true,
+        //     duration : 0.5,
+        // })
+
+
+
+    }
+    //Use of Event Delegation
+    //For moving to popup on click on event in list , we were attaching event handler to each of the list dom elements as soon as they were being created.
+    //But using Event delegation we don't need to add event handler to each of the dom elements in future when they are going to be created
+
+
+    //function for setting up local Storage
+    _setLocalStorage(){
+        localStorage.setItem('workouts' , JSON.stringify(this.workouts))
+    }
+    _getLocalStorage(){
+        let workoutsArray =  JSON.parse(localStorage.getItem('workouts'))
+
+        if(!workoutsArray) return;
+        this.workouts = workoutsArray.map(workoutObj => {
+            workoutObj.date = new Date(workoutObj.date)
+
+            if(workoutObj.workoutType === 'running'){
+                Object.setPrototypeOf(workoutObj , Running.prototype)
+            } else if(workoutObj.workoutType === 'cycling'){
+                Object.setPrototypeOf(workoutObj , Cycling.prototype)
+            }
+            return workoutObj;
+        })
+
+        this.workouts.forEach(workoutObj => {
+            this._renderWorkout.call(this , workoutObj)
+            
+        });
+
+
+
+    }
+
+    reset(){
+        localStorage.removeItem('workouts')
+        location.reload()
+    }
 
 }
 
