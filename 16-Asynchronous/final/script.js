@@ -3,6 +3,7 @@
 const btn = document.querySelector('.btn-country');
 const countriesContainer = document.querySelector('.countries');
 
+
 const renderCountry = function (data, className = '') {
   const html = `
   <article class="country ${className}">
@@ -402,7 +403,18 @@ PART 2
 TEST DATA: Images in the img folder. Test the error handler by passing a wrong image path. Set the network speed to 'Fast 3G' in the dev tools Network tab, otherwise images load too fast.
 
 GOOD LUCK 😀
-*/
+ */
+
+function createImage(imgPath){
+  return new Promise((resolve , reject)=> {
+    const img = document.createElement('img')
+    img.setAttribute('src' , `${imgPath}`)
+    
+    img.addEventListener('load' , ()=> {
+
+    })
+  })
+}
 
 /*
 const wait = function (seconds) {
