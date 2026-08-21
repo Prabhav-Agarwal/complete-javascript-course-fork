@@ -323,7 +323,7 @@ btn.addEventListener("click" , whereAmI.bind(this , 52.508, 13.381)) */
 
 
 //Event loop in practice___________________
-console.log('Test Start')  //print 1
+/* console.log('Test Start')  //print 1
 setTimeout(()=> console.log('0 second timeout') , 0) //this is placed in the callback que  //print 4
 
 //this immediately resolves the promise
@@ -334,6 +334,83 @@ Promise.resolve('Resolved Promise 2')
   console.log(response)
 })
 console.log('Test End') //print 2
+ */
+
+
+//Building our own promise___________________________________________________________________________________
+//We created our new promise by using Promise constructor fucntion
+// new Promise(executorFunction(resolve , reject))
+
+const lotteryPromise = new Promise(function(resolve , reject){
+  
+  console.log('///Lottery Drawn is happening///')
+
+  setTimeout(()=> { //this is used just to simulate asynchronous behaviour
+
+    if(Math.random() > 0.7){
+      resolve('You won the lottery') //calling this func settles promise in resolved state with value passed as arguements
+    } else {
+      reject(new Error('You lost your money')) //calling this func settles promise in rejected state with value passed as arguements which is then passsed to error handler
+    }
+  } ,  2000)
+})
+
+lotteryPromise
+.then((response)=> {
+  console.log(response)
+})
+.catch((err)=> console.error(err))
+
+
+//Promisifying SetTimeout Function//
+
+//for reference
+/* setTimeout(()=> {
+  console.log('1 second passed')
+  setTimeout(()=> {
+    console.log('2 second passed')
+    setTimeout(()=> {
+      console.log('4 second passed')
+      setTimeout(()=> {
+        console.log('1 second passed')
+      } , 1000)
+    } , 1000)
+  } , 1000)
+} , 1000) */
+
+function wait(seconds){
+  return new Promise((resolve)=> {
+    setTimeout(resolve() , seconds*1000)
+  })
+}
+
+
+
+wait(1)
+.then(()=>{
+  console.log('1 second passed')
+
+  return wait(1)
+})
+.then(()=>{
+  console.log('2 second passed')
+
+  return wait(1)
+})
+.then(()=>{
+  console.log('3 second passed')
+
+  return wait(1)
+})
+.then(()=>{
+  console.log('4 second passed')
+
+})
+
+//Resolving / Rejecting a promise instantly________
+Promise.resolve('Resolved Instantly').then((val)=> console.log(val))
+Promise.reject('Rejected Instantly').catch(err => console.error(err))
+
 
 
 
