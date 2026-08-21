@@ -299,7 +299,7 @@ GOOD LUCK 😀
 
 
 //Additionally using geolocation api to get users data
-navigator.geolocation.getCurrentPosition((position) => whereAmI(position.coords.latitude , position.coords.longitude))
+/* navigator.geolocation.getCurrentPosition((position) => whereAmI(position.coords.latitude , position.coords.longitude))
 const whereAmI = function(latitude , longitude){
   fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}`)
   .then(response => {
@@ -319,7 +319,22 @@ const whereAmI = function(latitude , longitude){
   })
 }
 
-btn.addEventListener("click" , whereAmI.bind(this , 52.508, 13.381))
+btn.addEventListener("click" , whereAmI.bind(this , 52.508, 13.381)) */
+
+
+//Event loop in practice___________________
+console.log('Test Start')  //print 1
+setTimeout(()=> console.log('0 second timeout') , 0) //this is placed in the callback que  //print 4
+
+//this immediately resolves the promise
+Promise.resolve('Resolved Promise 1').then((response)=> console.log(response))  //this is placed in the microtasks que  //print 3
+Promise.resolve('Resolved Promise 2')
+.then(response => {
+  for(let i=0; i<10000000000; i++){}
+  console.log(response)
+})
+console.log('Test End') //print 2
+
 
 
 
