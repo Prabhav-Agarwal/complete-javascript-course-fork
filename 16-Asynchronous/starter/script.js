@@ -300,8 +300,8 @@ GOOD LUCK 😀
 
 
 //Additionally using geolocation api to get users data
-/* navigator.geolocation.getCurrentPosition((position) => whereAmI(position.coords.latitude , position.coords.longitude))
-const whereAmI = function(latitude , longitude){
+// navigator.geolocation.getCurrentPosition((position) => whereAmI(position.coords.latitude , position.coords.longitude))
+/* const whereAmI = function(latitude , longitude){
   fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}`)
   .then(response => {
     if(!response.ok){
@@ -318,9 +318,9 @@ const whereAmI = function(latitude , longitude){
   .catch(error=> {
     console.log(error.message)
   })
-}
+} */
 
-btn.addEventListener("click" , whereAmI.bind(this , 52.508, 13.381)) */
+// btn.addEventListener("click" , whereAmI.bind(this , 52.508, 13.381)) 
 
 
 //Event loop in practice___________________
@@ -341,7 +341,7 @@ console.log('Test End') //print 2
 //Building our own promise___________________________________________________________________________________
 //We created our new promise by using Promise constructor fucntion
 // new Promise(executorFunction(resolve , reject))
-
+/* 
 const lotteryPromise = new Promise(function(resolve , reject){
   
   console.log('///Lottery Drawn is happening///')
@@ -360,7 +360,7 @@ lotteryPromise
 .then((response)=> {
   console.log(response)
 })
-.catch((err)=> console.error(err))
+.catch((err)=> console.error(err)) */
 
 
 //Promisifying SetTimeout Function//
@@ -379,14 +379,14 @@ lotteryPromise
   } , 1000)
 } , 1000) */
 
-/* function wait(seconds){
-  return new Promise((resolve)=> {
-    setTimeout(resolve() , seconds*1000)
+function wait(seconds , resolveValue){
+  return new Promise(resolve=> {
+    setTimeout(()=> resolve(resolveValue), seconds*1000)
   })
 }
 
 
-
+/*
 wait(1)
 .then(()=>{
   console.log('1 second passed')
@@ -413,7 +413,9 @@ wait(1)
 // Promise.reject('Rejected Instantly').catch(err => console.error(err))
 
 //Promisifying geolocation API____________________
-function getClientPosition(){
+
+
+/* function getClientPosition(){
   return new Promise((resolve , reject)=> {
     // navigator.geolocation.getCurrentPosition((position)=>{
     //   resolve(position)
@@ -423,7 +425,34 @@ function getClientPosition(){
 
     navigator.geolocation.getCurrentPosition(resolve , () => reject(new Error('Unable to get the coordinates')))
   })
+} */
+
+/*
+function whereAmI(){
+  getClientPosition()
+  .then(position => {
+    const {latitude , longitude} = position.coords
+    return fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}`)
+  })
+  .then(response => {
+    if(!response.ok){
+      throw new Error(`Something Went Wrong (${response.status})`)
+    }
+
+    return response.json()
+  })
+  .then(data => {
+    console.log(data)
+    console.log(`You are in ${data.principalSubdivision}, ${data.countryName}`)
+    getCountryData(data.countryName)
+  })
+  .catch(error=> {
+    console.log(error.message)
+  })
 }
+
+btn.addEventListener("click" , whereAmI)  */
+  
 
 ///////////////////////////////////////
 // Coding Challenge #2
@@ -450,40 +479,339 @@ TEST DATA: Images in the img folder. Test the error handler by passing a wrong i
 GOOD LUCK 😀
  */
 
+/* function createImage(imgPath){
+  return new Promise((resolve , reject)=> {
+    const img = document.createElement('img')
+    img.setAttribute('src' , imgPath)
+    
+    img.addEventListener('load' , ()=> {
+      imagesContainer.insertAdjacentElement("afterbegin" , img1)
+      resolve(img)
+    })
+
+    img.addEventListener('error',  (e)=> {
+      reject(e)
+    })
+  })
+}
+createImage(`img/img-1.jpg`)
+.then(responseValue=> {
+  return wait(3 , responseValue) //stopping the execution for 2 sec |returns promise with img as response
+})
+.then(responseValue => {
+
+  responseValue.style.display = 'none'
+
+  return createImage(`img/img-2.jpg`)
+})
+.then(responseValue => {
+  return wait(3 , responseValue)
+})
+.then(responseValue => responseValue.style.display = 'none')
+.catch(error => console.error(`Something Went wrong : ${error}`)) */
+
+//Consuming Promises with 'Async & Await' keyword_______________________________________________________________________________
+
+//Note: Async & Await is just syntx sugar  over then method of consumiung promises.
+
+//'async' Keyword______ :-
+//1) Using async keyword before a function makes the function asynchronous in nature.
+//2) async function always returns a promise | if we return a normal value promise is fulfilled by that value | no return , then fulfilled by undefined.
+
+//'await' Keyword______ :-
+//1) await keyword can only be used inside asunc function
+//2) await Promise() --> stops the execution of async function until the promise is settled and then returns with fulfilled value
+//3) await (any other value) ---> immediate returns that value like in case of Promise.resolve(any other value)
+//4) await also unwraps the element for the vareiable storage insid async function
+
+//try...catch___________________________________
+//used to catch any errors in code wrapped inside try block
+/* 
+try {
+
+} catch {
+
+} 
+*/
+
+//whereAmI using async / await______
+/* 
+const whereAmI = async function (){
+
+  try {  
+    //getting user coordinates
+    const {latitude , longitude} = await new Promise((resolve  , reject)=> {
+      navigator.geolocation.getCurrentPosition((position) => resolve(position.coords) ,reject )
+    } )
+
+    const dataFromCoords = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}`)
+   if(!dataFromCoords.ok){throw new Error('Unable to get country')}
+    const countryData = await dataFromCoords.json()
+
+    const countryName = countryData.countryName
+
+    getCountryData(countryName)
+
+    //returning a value
+    return `You are in ${countryName}`
+  } catch(err){
+    console.error(`Something Went Wrong : ${err.message}`)
+    throw err;
+  }
+}
+
+btn.addEventListener('click' , whereAmI); */
+
+
+
+//async function always returns a promise fullfilled with return value of function  
+// in case of no return : promise fulfiled with undefined
+//if we throw an error than that error can be handeled by the catch handler attached to promise returned by async function
+
+/* console.log('Step 1 :')
+
+whereAmI()
+.then((res)=> {
+  console.log(res)
+})
+.catch(err => {
+  console.error(`Something Went Wrong : ${err.message}`)
+})
+.finally(() => console.log('Step 3')) */
+
+//Above execution using async await
+
+//IIFE.....
+
+/* (async function() {
+
+  console.log('I am first')
+  try{
+    
+    const res = await whereAmI()
+    console.log(res)
+    
+  } catch(err){
+    console.error(`Something Went Wrong : ${err.message}`)
+  }
+  console.log('I am third')
+})() */
+
+//Running Promises in Parallel________________________________________________________________________________________
+//If one request does not depend on others we can make multiple asynchronous calls at once
+
+//Promise.all() method____________
+//Promise.all([]array of promises) --> This is a combinator function which executes all the promises present in array at once
+//Promise.all() also returns a prmomise fullfilled by an array of result of each promise in arguments array
+//If any promise from arguments array is rejected , entire promise returned by Promise.all() rejected
+
+
+
+//Function in which 3 countries passed as and log capital cities as an array
+
+//helper function
+
+
+/* const getThreeCountriesCapital = async function(c1 , c2 , c3){
+
+  try{
+  //In series : 
+
+  // const [country1] = await getCountryJSON(`https://corsproxy.io/?url=https://www.apicountries.com/name/${c1}`)
+  // const [country2] = await getCountryJSON(`https://corsproxy.io/?url=https://www.apicountries.com/name/${c2}`)
+  // const [country3] = await getCountryJSON(`https://corsproxy.io/?url=https://www.apicountries.com/name/${c3}`)
+
+  // console.log([country1.capital , country2.capital , country3.capital])
+  
+  //In parallel :
+
+  const countriesArray = await Promise.all([
+    getCountryJSON(`https://corsproxy.io/?url=https://www.apicountries.com/name/${c1}`),
+    getCountryJSON(`https://corsproxy.io/?url=https://www.apicountries.com/name/${c2}`),
+    getCountryJSON(`https://corsproxy.io/?url=https://www.apicountries.com/name/${c3}`)
+  ])
+
+  console.log(countriesArray.map(country => country[0].capital))
+  } catch(e){
+    console.error(`Something went wrong : ${e}`)
+  }
+
+}
+
+getThreeCountriesCapital('Japan' , 'Russia' , 'Norway'); */
+
+//Promise Combinator Functions___________________________
+
+//1) Promise.all([] array of promises)_____
+// Studied above
+
+//2) Promise.race([] array of promises)______
+// This method returns a promise.
+// As soon as one of the promises in the promises array is settled Promise.race() returns a promise with the settled value race winning promise
+//Either rejected or fulfilled doesn't matter
+
+//Ex:
+/* (async function (){
+  const [raceWinner]  = await Promise.race([
+    getCountryJSON(`https://corsproxy.io/?url=https://www.apicountries.com/name/Italy`),
+    getCountryJSON(`https://corsproxy.io/?url=https://www.apicountries.com/name/Canada`),
+    getCountryJSON(`https://corsproxy.io/?url=https://www.apicountries.com/name/Mexico`)
+  ])
+
+  console.log(raceWinner.name)
+})(); */
+
+//Usecase : Promise.race() can be use to  automatically rejects requests after a defined time if in case it is taking too much time
+
+/* (async function (){
+
+    try {
+      const response =  await Promise.race([
+      new Promise((resolve)=> {
+        setTimeout(() => resolve('Promise 1 Won')  , 4000)
+      }) ,
+      new Promise((resolve)=> {
+        setTimeout(() => resolve('Promise 2 Won')  , 5000)
+      }),
+      new Promise((resolve , reject)=> {
+        setTimeout(()=> reject('Took too long fulfill request') , 3000)  //promise is going to rejected after 3 seconds 
+      })
+    ])
+
+    console.log(response)
+    } catch(e){
+      console.error(e)
+    }
+
+
+  })() */
+
+//3) Promise.allSettled([] array of promises)______
+//Promise.allSettled() waits for all the promises in the array to get settled (rejected or fulfilled doesn't matter) and it returns an array conataining outcome of all the settled promised.
+
+//Main dif. b/w Promise.all() and Promise.allSettled() is that first one short circuits as soons as one of array's promise is rejected
+
+/* const res1 = Promise.allSettled([
+  Promise.resolve('Promise 1 resolved'),
+  Promise.resolve('Promise 2 resolved'),
+  Promise.reject('Promise 3 rejected'),
+  Promise.resolve('Promise 4 resolved')
+])
+console.log(res1)
+ */
+
+//4) Promise.any([] array of promises)______
+//It returns the first resolved promise from the array unlike Promise.race() which returns the frist settled promise
+
+
+/* 
+const res2 = Promise.any([
+  Promise.reject('Promise 1 rejected'),
+  Promise.reject('Promise 2 rejected'),
+  Promise.resolve('Promise 3 resolved'),
+  Promise.resolve('Promise 4 resolved')
+])
+console.log(res2)
+ */
+
+
+///////////////////////////////////////
+// Coding Challenge #2
+
+/* 
+Build the image loading functionality that I just showed you on the screen.
+
+Tasks are not super-descriptive this time, so that you can figure out some stuff on your own. Pretend you're working on your own 😉
+
+PART 1
+1. Create a function 'createImage' which receives imgPath as an input. This function returns a promise which creates a new image (use document.createElement('img')) and sets the .src attribute to the provided image path. When the image is done loading, append it to the DOM element with the 'images' class, and resolve the promise. The fulfilled value should be the image element itself. In case there is an error loading the image ('error' event), reject the promise.
+
+If this part is too tricky for you, just watch the first part of the solution.
+
+PART 2
+2. Comsume the promise using .then and also add an error handler;
+3. After the image has loaded, pause execution for 2 seconds using the wait function we created earlier;
+4. After the 2 seconds have passed, hide the current image (set display to 'none'), and load a second image (HINT: Use the image element returned by the createImage promise to hide the current image. You will need a global variable for that 😉);
+5. After the second image has loaded, pause execution for 2 seconds again;
+6. After the 2 seconds have passed, hide the current image.
+
+TEST DATA: Images in the img folder. Test the error handler by passing a wrong image path. Set the network speed to 'Fast 3G' in the dev tools Network tab, otherwise images load too fast.
+
+GOOD LUCK 😀
+ */
+
+///////////////////////////////////////
+// Coding Challenge #3
+
+/*
+PART 1
+Write an async function 'loadNPause' that recreates Coding Challenge #2, this time using async/await (only the part where the promise is consumed). Compare the two versions, think about the big differences, and see which one you like more.
+Don't forget to test the error handler, and to set the network speed to 'Fast 3G' in the dev tools Network tab.
+
+PART 2
+1. Create an async function 'loadAll' that receives an array of image paths 'imgArr';
+2. Use .map to loop over the array, to load all the images with the 'createImage' function (call the resulting array 'imgs')
+3. Check out the 'imgs' array in the console! Is it like you expected?
+4. Use a promise combinator function to actually get the images from the array 😉
+5. Add the 'paralell' class to all the images (it has some CSS styles).
+
+TEST DATA: ['img/img-1.jpg', 'img/img-2.jpg', 'img/img-3.jpg']. To test, turn off the 'loadNPause' function.
+
+GOOD LUCK 😀
+*/
+
+//Solution: Part 1
+
+
 function createImage(imgPath){
   return new Promise((resolve , reject)=> {
     const img = document.createElement('img')
-    img.setAttribute('src' , `${imgPath}`)
+    img.setAttribute('src' , imgPath)
     
     img.addEventListener('load' , ()=> {
       imagesContainer.insertAdjacentElement("afterbegin" , img)
       resolve(img)
     })
 
-    windows.addEventListener('error',  (e)=> {
+    img.addEventListener('error',  (e)=> {
       reject(e)
     })
   })
 }
-  createImage('C:\Users\Asus\OneDrive\Desktop\complete-javascript-course-fork\16-Asynchronous\starter\img')
+
+/*
+const loadNPause = async function(imgPath){
 
 
+  try{
+    const image1  = await createImage('img/img-1.jpg')
+    await wait(3 , image1)
+    image1.style.display = 'none'
 
+    const image2 = await createImage('img/img-2.jpg')
+    await wait(3 , image2)
+    image2.style.display = 'none'
+    
 
+  } catch(e) {
+    console.error(e)
+  }
 
+  
+}
+ loadNPause(`img/img-1.jpg`) */
 
+ //Solution : Part 2
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+const loadAll = async function(imgPathArr){
+  const imgs = imgPathArr.map(async (imgPath)=> {
+    return await createImage(imgPath)
+  })
+  console.log(imgs)
+  
+  const images = await Promise.all(imgs)
+  images.forEach(img => img.classList.add('parallel'))
+  console.log(images)
+   
+}
+loadAll([`img/img-1.jpg` , `img/img-2.jpg`, `img/img-3.jpg`])
